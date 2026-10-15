@@ -1,0 +1,19 @@
+# ===== 玄玖知识库 NT-Know · Git 忽略清单 =====
+
+# —— 系统 / 编辑器垃圾 ——
+.DS_Store
+**/.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# —— 依赖 ——
+node_modules/
+
+# —— AI 工具工作区数据（本地记忆/会话，不属于代码仓库）——
+.workbuddy/
+.codebuddy/
+
+# —— 备份 ——
+*.bak

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="robots" content="index, follow, noarchive, max-image-preview:large">
+    <meta name="description" content="玄玖知识库 | 知识沉淀与资料检索中心。文档已转化为 JS 数据，可全文检索、目录导航、章节定位，手机/平板/电脑三端适配。">
+    <meta name="keywords" content="玄玖知识库,知识库,Ntarstudio,星玖工作室,文档检索,Markdown,JS知识库">
+    <meta name="author" content="Ntarstudio / Ntars">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com; connect-src 'self'; frame-src 'none'; object-src 'none';">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="玄玖知识库 — Ntarstudio">
+    <meta property="og:description" content="知识沉淀与资料检索中心。">
+    <meta property="og:locale" content="zh_CN">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0E0E13">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="玄玖知识库">
+    <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+    <link rel="apple-touch-icon-precomposed" href="assets/img/apple-touch-icon.png">
+    <title>玄玖知识库 - Ntarstudio</title>
+    <!-- JSON-LD 结构化数据 -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "玄玖知识库",
+      "alternateName": ["Xuanjiu Knowledge Base"],
+      "url": "https://k.ntars.cn/",
+      "description": "玄玖知识库 | 知识沉淀与资料检索中心",
+      "publisher": {
+        "@type": "Organization",
+        "name": "星玖工作室",
+        "url": "https://www.ntars.cn/"
+      }
+    }
+    </script>
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg?v=3">
+    <link rel="shortcut icon" href="assets/img/favicon.svg?v=3">
+    <script>
+        // 主题预设：优先跟随系统浅色/深色，无法检测时按日出日落时间（6-18 点浅色，其余深色）
+        (function(){
+            document.documentElement.classList.add('theme-lock');
+            var theme;
+            var mq = window.matchMedia('(prefers-color-scheme: dark)');
+            if (mq.media !== 'not all') {
+                theme = mq.matches ? 'dark' : 'light';
+            } else {
+                var h = new Date().getHours();
+                theme = (h >= 6 && h < 18) ? 'light' : 'dark';
+            }
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.style.colorScheme = theme;
+            requestAnimationFrame(function(){
+                requestAnimationFrame(function(){
+                    document.documentElement.classList.remove('theme-lock');
+                });
+            });
+        })();
+    </script>
+    <link rel="stylesheet" href="assets/css/kbase.css">
+</head>
+<body>
+
+    <!-- ==================== 烟花粒子背景画布（官网同款） ==================== -->
+    <canvas class="fireworks"></canvas>
+
+    <!-- ==================== 主内容区 ==================== -->
+    <div class="index">
+
+        <!-- 顶部问候区（官网同款：Hi, I'm Ntars） -->
+        <div class="hello">
+            <div class="title" id="greeting-title">
+                <div class="title-hi">Hi, I'm</div>
+                <span class="title-name">Ntars</span>
+            </div>
+            <div class="hello-desc">玄玖知识库 · 知识沉淀与资料检索</div>
+        </div>
+
+        <!-- 内容分割线（虚线） -->
+        <div class="content-divider"></div>
+
+        <!-- 全局检索区 -->
+        <div class="search-box">
+            <div class="search-input-wrap magical">
+                <input type="search" id="global-search" placeholder="检索知识库 · 全文 / 标题 / 章节" autocomplete="off" enterkeyhint="search">
+                <span class="search-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.4"/>
+                        <path d="M9.6 9.6L12.5 12.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                    </svg>
+                </span>
+            </div>
+            <!-- 检索结果（默认隐藏，检索时由 JS 渲染） -->
+            <div id="search-results" class="search-results" hidden></div>
+        </div>
+
+        <!-- 文档目录列表（JS 渲染，紧凑目录式） -->
+        <div class="quickly-link" id="docs-section">
+            <div class="main">
+                <div class="title-hi" id="docs-title">Knowledge Base</div>
+            </div>
+            <div class="projects-spacer"></div>
+            <ul class="doc-index" id="doc-list"><!-- JS 渲染文档目录条目 --></ul>
+        </div>
+
+        <!-- 阅读页（默认隐藏，打开某文档时显示） -->
+        <div class="reader" id="reader" hidden>
+            <div class="reader-body">
+                <!-- 左侧目录栏（含返回按钮，正文上方不再显示文档名） -->
+                <aside class="reader-side">
+                    <button class="back-btn" id="reader-back" type="button" aria-label="返回目录">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M3.5 7H12.833M12.833 7L8.7916 2.9584M3.5 7L7.5416 11.042" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>目录</span>
+                    </button>
+                    <nav class="reader-toc" id="reader-toc"></nav>
+                </aside>
+                <article class="reader-content" id="reader-content"></article>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 左上角「联系我们」入口（固定文字按钮，NT-Studio 同款） ==================== -->
+    <div class="contact-entry" id="contact-card" role="button" tabindex="0" aria-haspopup="dialog" aria-controls="contact-modal">联系我们</div>
+
+    <!-- ==================== 联系我们弹窗（NT-Studio 同款） ==================== -->
+    <div class="contact-modal" id="contact-modal" hidden>
+        <div class="contact-modal-mask" data-contact-close></div>
+        <div class="contact-modal-panel" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title">
+            <div class="contact-modal-close" id="contact-modal-close" role="button" tabindex="0" aria-label="关闭">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M12.3 4.76667L11.2333 3.7L8 6.93333L4.76667 3.7L3.7 4.76667L6.93333 8L3.7 11.2333L4.76667 12.3L8 9.06667L11.2333 12.3L12.3 11.2333L9.06667 8L12.3 4.76667Z" fill="currentColor"></path>
+                </svg>
+            </div>
+            <div class="contact-modal-head">
+                <div class="contact-modal-title" id="contact-modal-title">联系我们</div>
+            </div>
+
+            <div class="contact-modal-body">
+                <!-- 官方网站（跳转星玖工作室官网，新窗口打开） -->
+                <div class="contact-group">
+                    <div class="contact-group-title">官方网站</div>
+                    <div class="contact-list">
+                        <a class="contact-item" href="https://www.ntars.cn/" target="_blank" rel="noopener noreferrer">
+                            <span class="contact-item-label">星玖工作室官网</span>
+                            <span class="contact-item-value">www.ntars.cn</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 社交平台（可跳转，新窗口打开） -->
+                <div class="contact-group">
+                    <div class="contact-group-title">社交平台</div>
+                    <div class="contact-list">
+                        <a class="contact-item" href="https://github.com/ntars" target="_blank" rel="noopener noreferrer">
+                            <span class="contact-item-label">GitHub 主页</span>
+                            <span class="contact-item-value">github.com/ntars</span>
+                        </a>
+                        <a class="contact-item" href="https://ifdian.net/a/ntars/" target="_blank" rel="noopener noreferrer">
+                            <span class="contact-item-label">爱发电</span>
+                            <span class="contact-item-value">ifdian.net/a/ntars</span>
+                        </a>
+                        <a class="contact-item" href="https://space.bilibili.com/499925438" target="_blank" rel="noopener noreferrer">
+                            <span class="contact-item-label">哔哩哔哩 Bilibili</span>
+                            <span class="contact-item-value">space.bilibili.com/499925438</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 直接联系方式（点击复制到剪贴板，不跳转） -->
+                <div class="contact-group">
+                    <div class="contact-group-title">联系方式</div>
+                    <div class="contact-list">
+                        <div class="contact-item" data-contact-copy="ntarsx@163.com" role="button" tabindex="0" title="点击复制邮箱">
+                            <span class="contact-item-label">邮箱</span>
+                            <span class="contact-item-value">ntarsx@163.com</span>
+                        </div>
+                        <div class="contact-item" data-contact-copy="3933361415" role="button" tabindex="0" title="点击复制 QQ 号">
+                            <span class="contact-item-label">QQ</span>
+                            <span class="contact-item-value">3933361415</span>
+                        </div>
+                        <div class="contact-item" data-contact-copy="Ntarsv" role="button" tabindex="0" title="点击复制微信号">
+                            <span class="contact-item-label">微信</span>
+                            <span class="contact-item-value">Ntarsv</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 页脚区域 ==================== -->
+    <footer class="app-footer">
+        <div class="footer-content">
+            <div class="footer-beian">
+                <a class="footer-beian-link" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">蜀ICP备2026027050号</a>
+            </div>
+            <div class="footer-copyright">© 2024 - 2026 Ntarstudio. All Rights Reserved.</div>
+        </div>
+    </footer>
+
+    <!-- ==================== 底部装饰元素 ==================== -->
+    <div class="widget">
+        <div class="shape-light"></div>
+        <div class="shape-star">
+            <div class="rising-stars rising-stars-visible">
+                <div style="height:1px;width:1px"></div>
+                <div style="height:2px;width:2px"></div>
+                <div style="height:1px;width:1px"></div>
+            </div>
+        </div>
+        <div class="shape-earth"></div>
+    </div>
+
+</body>
+
+<!-- ==================== 脚本加载（与官网一致，按依赖顺序） ==================== -->
+
+<!-- 1. 知识库数据（JS 单一真源，由 build-knowledge.mjs 生成，必须先于 app.js） -->
+<script src="assets/js/knowledge-data.js"></script>
+
+<!-- 2. 应用核心逻辑（卡片渲染 / 全文检索 / 阅读页 / 彩蛋，内置零依赖） -->
+<script src="assets/js/app.js"></script>
+
+<!-- 3. 卡片光晕交互（官网同款 Magical Card Hover Effect） -->
+<script src="assets/js/app.min.js"></script>
+
+<!-- 4. 动画引擎库（anime.js，烟花效果依赖） -->
+<script src="assets/js/anime.js"></script>
+
+<!-- 5. 鼠标/触摸烟花粒子效果 -->
+<script src="assets/js/firework.js"></script>
+
+<!-- 6. 鼠标拖尾效果（主题适配 + 触摸支持） -->
+<script src="assets/js/trail.js"></script>
+
+<!-- 7. 背景交互粒子（鼠标排斥 + 触摸支持） -->
+<script src="assets/js/bg.js"></script>
+
+<!-- 8. PWA 注册 -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+            navigator.serviceWorker.register('./sw.js')
+                .catch(function () {});
+        });
+    }
+</script>
+
+<!-- 9. 联系我们弹窗控制（NT-Studio 同款） -->
+<script>
+    // ==================== 联系我们弹窗控制 ====================
+    (function() {
+        var modal = document.getElementById('contact-modal');
+        var card = document.getElementById('contact-card');
+        var closeBtn = document.getElementById('contact-modal-close');
+        var panel = modal ? modal.querySelector('.contact-modal-panel') : null;
+        if (!modal || !card) return;
+
+        var lastFocus = null;
+
+        // 滚动条宽度补偿：锁滚动条时给 body 加等宽 padding，避免内容横向位移（跳动）
+        var scrollBarW = 0;
+        var bodyPaddingRight = '';
+        var bodyOverflow = '';
+
+        function lockScroll() {
+            bodyPaddingRight = document.body.style.paddingRight;
+            bodyOverflow = document.body.style.overflow;
+            scrollBarW = window.innerWidth - document.documentElement.clientWidth;
+            document.body.style.overflow = 'hidden';
+            if (scrollBarW > 0) {
+                document.body.style.paddingRight = scrollBarW + 'px';
+            }
+        }
+
+        function unlockScroll() {
+            document.body.style.overflow = bodyOverflow;
+            document.body.style.paddingRight = bodyPaddingRight;
+        }
+
+        function openModal() {
+            lastFocus = document.activeElement;
+            modal.hidden = false;
+            lockScroll();
+            // 触发过渡动画
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    modal.classList.add('is-open');
+                });
+            });
+            card.classList.add('is-hidden');
+            if (closeBtn) closeBtn.focus();
+        }
+
+        function closeModal() {
+            modal.classList.remove('is-open');
+            // 面板动画结束后再收起容器并恢复滚动条，
+            // 避免提前解锁导致滚动条消失、页面横向位移（视觉上"跳动"一下）
+            var target = panel || modal;
+            var finished = false;
+            var finish = function() {
+                if (finished) return;
+                finished = true;
+                target.removeEventListener('transitionend', onEnd);
+                clearTimeout(fallback);
+                modal.hidden = true;
+                unlockScroll();
+                card.classList.remove('is-hidden');
+            };
+            var onEnd = function(e) {
+                // 面板退出只过渡 opacity（transform 不参与过渡），故监听 opacity
+                if (e.target !== target || e.propertyName !== 'opacity') return;
+                finish();
+            };
+            target.addEventListener('transitionend', onEnd);
+            // 兜底：若动画被跳过（如 prefers-reduced-motion），延时后直接收起
+            var fallback = setTimeout(function() {
+                if (!modal.classList.contains('is-open')) finish();
+            }, 500);
+            if (lastFocus && lastFocus.focus) lastFocus.focus();
+        }
+
+        card.addEventListener('click', openModal);
+        card.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(); }
+        });
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeModal);
+            closeBtn.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closeModal(); }
+            });
+        }
+
+        // 点击遮罩关闭
+        modal.querySelectorAll('[data-contact-close]').forEach(function(el) {
+            el.addEventListener('click', closeModal);
+        });
+
+        // ESC 关闭
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !modal.hidden) closeModal();
+        });
+
+        // 纯文本联系方式（邮箱/QQ/微信）：点击或回车复制到剪贴板，不跳转
+        function copyText(text, el) {
+            var v = el.querySelector('.contact-item-value');
+            var feedback = function(ok) {
+                if (!v || v.dataset.copied) return;
+                var original = v.textContent;
+                v.dataset.copied = '1';
+                v.textContent = ok ? '已复制' : '复制失败';
+                setTimeout(function() { v.textContent = original; delete v.dataset.copied; }, 1200);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() { feedback(true); })
+                    .catch(function() { feedback(false); });
+            } else {
+                feedback(false);
+            }
+        }
+
+        modal.querySelectorAll('[data-contact-copy]').forEach(function(el) {
+            var trigger = function() { copyText(el.getAttribute('data-contact-copy'), el); };
+            el.addEventListener('click', trigger);
+            el.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); trigger(); }
+            });
+        });
+    })();
+</script>
+
+</html>
